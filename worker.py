@@ -21,10 +21,11 @@ consumer = Consumer(consumer_conf)
 
 
 class Parallel_BFS:
-    def __init__(self, task, lv1selector):
+    def __init__(self, task, lv1selector=None):
         self.task = task
         self.lv1selector = lv1selector
-        self.subroot = True
+        self.subroot = False
+        if self.lv1selector: self.subroot = True
     
     def execute(self, task):
         result = []

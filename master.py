@@ -19,7 +19,7 @@ def distribute_selectors(lv1selectors):
 
 def aggregate_results(num_workers):
     consumer_conf = {
-        'bootstrap.servers': 'localhost:9092',
+        'bootstrap.servers': 'localhost:9091',
         'group.id': 'master-group',
         'auto.offset.reset': 'earliest'
     }
@@ -43,6 +43,7 @@ def aggregate_results(num_workers):
         data = json.loads(msg.value().decode('utf-8'))
         if data.get('status') == 'completed':
             completed_workers += 1
+            # pass
         else:
             results.extend(data['discoveries'])
 
@@ -62,7 +63,7 @@ def main():
     # target = ps.BinaryTarget("survival_category", "long")
     search_space = ps.create_selectors(data, ignore=["survival_category", "overall survival follow-up time"])
     ref_operator = ps.StaticSpecializationOperator(search_space)
-    level1_selectors = chain.from_iterable(ref_operator.search_space)
+    level1_selectors = chain.from_iterable(getattr(ref_operator, search_space))
     distribute_selectors(level1_selectors)
 if __name__ == "__main__":
     main()

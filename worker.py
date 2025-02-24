@@ -20,14 +20,16 @@ consumer_conf = {
 consumer = Consumer(consumer_conf)
 
 
-class Constrained_BFS:
-    def __init__(self, task, constraint):
+class Parallel_BFS:
+    def __init__(self, task, lv1selector):
         self.task = task
-        self.constraint = constraint
+        self.lv1selector = lv1selector
+        self.subroot = True
     
     def execute(self, task):
         result = []
         queue = [(float("-inf"), ps.Conjunction([]))]
+        # queue = [(q, self.lv1selector)]
         operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task.data, task.target)
         while queue:
@@ -35,10 +37,13 @@ class Constrained_BFS:
             q = -q
             if not q > ps.minimum_required_quality(result, task):
                 break
-            for candidate_description in operator.refinements(old_description):
+            if self.subroot:
+                sGs = (old_description & self.lv1selector,)
+                self.subroot = False
+            else:
+                sGs = operator.refinements(old_description)
+            for candidate_description in sGs:
                 sg = candidate_description
-                # if self.constraint not in sg:
-                #     continue
                 statistics = task.qf.calculate_statistics(sg, task.target, task.data)
                 ps.add_if_required(
                     result,
@@ -113,11 +118,11 @@ def fetch_work(worker_id):
         consumer.close()
 
 
-def traverse_node(worker_id, task, selectornode_constraint):
+def traverse_node(worker_id, task, lv1selector):
     sys.stdout.write(f'Worker {worker_id} is processing data...\n')
     
     
-    search_algorithm = Constrained_BFS(task, selectornode_constraint)
+    search_algorithm = Parallel_BFS(task, lv1selector)
     result = search_algorithm.execute(task)
 
     discoveries = result.to_descriptions()
@@ -126,7 +131,7 @@ def traverse_node(worker_id, task, selectornode_constraint):
 
 def main(worker_id):
     sys.stdout.write(f'Starting worker {worker_id}\n')
-    selectornode_constraint = fetch_work(worker_id)
+    lv1selector = fetch_work(worker_id)
     # Convert data into a task object for BestFirstSearch
     task = ps.SubgroupDiscoveryTask(data=data,
                                 target=target,
@@ -134,10 +139,10 @@ def main(worker_id):
                                 result_set_size=10,
                                 depth=2,
                                 qf=ps.WRAccQF(),
-                                # constraints=[selectornode_constraint]
+                                # constraints=[lv1selector]
                                 )
-    if selectornode_constraint:
-        traverse_node(worker_id, task, selectornode_constraint) #usually take more time to traverse when the patterns to traverse under the node is deep
+    if lv1selector:
+        traverse_node(worker_id, task, lv1selector) #usually take more time to traverse when the patterns to traverse under the node is deep
 
 
 if __name__ == '__main__':

@@ -149,53 +149,53 @@ services:
       options:
         max-size: "1m"
   
-  producer:
-    platform: linux/amd64
-    container_name: producer
-    image: ruanbekker/kafka-producer-consumer:2023-05-17
-    # source: https://github.com/ruanbekker/quick-starts/tree/main/docker/kafka/python-client
-    restart: always
-    environment:
-      - ACTION=producer
-      - BOOTSTRAP_SERVERS=broker-1:29091,broker-2:29092,broker-3:29093
-      - TOPIC=my-topic
-      - PYTHONUNBUFFERED=1 # https://github.com/docker/compose/issues/4837#issuecomment-302765592
-    networks:
-      - kafka
-    depends_on:
-      - zookeeper
-      - broker-1
-      - broker-2
-      - broker-3
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "1m"
+  # producer:
+  #   platform: linux/amd64
+  #   container_name: producer
+  #   image: ruanbekker/kafka-producer-consumer:2023-05-17
+  #   # source: https://github.com/ruanbekker/quick-starts/tree/main/docker/kafka/python-client
+  #   restart: always
+  #   environment:
+  #     - ACTION=producer
+  #     - BOOTSTRAP_SERVERS=broker-1:29091,broker-2:29092,broker-3:29093
+  #     - TOPIC=my-topic
+  #     - PYTHONUNBUFFERED=1 # https://github.com/docker/compose/issues/4837#issuecomment-302765592
+  #   networks:
+  #     - kafka
+  #   depends_on:
+  #     - zookeeper
+  #     - broker-1
+  #     - broker-2
+  #     - broker-3
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "1m"
 
-  consumer:
-    platform: linux/amd64
-    container_name: consumer
-    image: ruanbekker/kafka-producer-consumer:2023-05-17
-    # source: https://github.com/ruanbekker/quick-starts/tree/main/docker/kafka/python-client
-    restart: always
-    environment:
-      - ACTION=consumer
-      - BOOTSTRAP_SERVERS=broker-1:29091,broker-2:29092,broker-3:29093
-      - TOPIC=my-topic
-      - CONSUMER_GROUP=cg-group-id
-      - PYTHONUNBUFFERED=1 # https://github.com/docker/compose/issues/4837#issuecomment-302765592
-    networks:
-      - kafka
-    depends_on:
-      - zookeeper
-      - broker-1
-      - broker-2
-      - broker-3
-      - producer
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "1m"
+  # consumer:
+  #   platform: linux/amd64
+  #   container_name: consumer
+  #   image: ruanbekker/kafka-producer-consumer:2023-05-17
+  #   # source: https://github.com/ruanbekker/quick-starts/tree/main/docker/kafka/python-client
+  #   restart: always
+  #   environment:
+  #     - ACTION=consumer
+  #     - BOOTSTRAP_SERVERS=broker-1:29091,broker-2:29092,broker-3:29093
+  #     - TOPIC=my-topic
+  #     - CONSUMER_GROUP=cg-group-id
+  #     - PYTHONUNBUFFERED=1 # https://github.com/docker/compose/issues/4837#issuecomment-302765592
+  #   networks:
+  #     - kafka
+  #   depends_on:
+  #     - zookeeper
+  #     - broker-1
+  #     - broker-2
+  #     - broker-3
+  #     - producer
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "1m"
 
 networks:
   kafka:

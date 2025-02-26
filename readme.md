@@ -15,6 +15,7 @@ Launch multiple instances of the worker node script:
 syntax: python worker.py worker_id server:port
 ```console
 syntax: python worker.py worker_id server:port
-python worker.py worker1 port1
-python worker.py worker2 port2
+python worker.py worker1 9091
+python worker.py worker2 9092
+python worker.py worker3 9093
 ```

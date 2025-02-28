@@ -1,25 +1,18 @@
+#%%
 from confluent_kafka import Producer, Consumer, KafkaException
 from heapq import heappop, heappush
-
 import json
 import sys
+from itertools import chain
 # import time
 import numpy as np
 import pandas as pd
-
 import pysubgroup as ps
 
-producer_conf = {'bootstrap.servers': 'localhost:{server_port}'}
-producer = Producer(**producer_conf)
-
-consumer_conf = {
-    f'bootstrap.servers': 'localhost:{server_port}',
-    'group.id': 'worker-group',
-    'auto.offset.reset': 'earliest'
-}
-consumer = Consumer(consumer_conf)
+#%%
 
 
+#%%
 class Parallel_BFS:
     def __init__(self, task, lv1selector=None):
         self.task = task
@@ -76,13 +69,14 @@ class Parallel_BFS:
         result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
+#%%
 def delivery_report(err, msg):
     if err is not None:
         sys.stderr.write(f'Delivery failed for record {msg.key()}: {err}\n')
     else:
         sys.stdout.write(f'Record {msg.key()} successfully produced to {msg.topic()} at offset {msg.offset()}\n')
 
-
+#%%
 def report_discoveries(worker_id, discoveries):
     producer.produce(
         'results-topic', 
@@ -92,6 +86,7 @@ def report_discoveries(worker_id, discoveries):
     )
     producer.flush()
 
+#%%
 def report_completion(producer, worker_id):
     producer.produce(
         'results-topic',
@@ -101,6 +96,7 @@ def report_completion(producer, worker_id):
     )
     producer.flush()
 
+#%%
 def fetch_work(worker_id):
     consumer.subscribe(['work-topic-'+worker_id])
     try:
@@ -112,13 +108,13 @@ def fetch_work(worker_id):
                 raise KafkaException(msg.error())
             else:
                 sys.stdout.write(f'Received selector to traverse: {msg.value().decode("utf-8")}\n')
-                return json.loads(msg.value().decode('utf-8'))
+                return int(json.loads(msg.value().decode('utf-8')))
     except KeyboardInterrupt:
         sys.stderr.write('%% Keyboard Interrupt\n')
     finally:
-        consumer.close()
+        # consumer.close()
 
-
+#%%
 def traverse_node(worker_id, task, lv1selector):
     sys.stdout.write(f'Worker {worker_id} is processing data...\n')
     
@@ -127,12 +123,18 @@ def traverse_node(worker_id, task, lv1selector):
     result = search_algorithm.execute(task)
 
     discoveries = result.to_descriptions()
-    report_discoveries(worker_id, discoveries)
-    report_completion(producer, worker_id)
+    print(discoveries)
+    # report_discoveries(worker_id, discoveries)
+    # report_completion(producer, worker_id)
 
+#%%
 def main(worker_id):
+    print(worker_id)
     sys.stdout.write(f'Starting worker {worker_id}\n')
-    lv1selector = fetch_work(worker_id)
+    ptrn_id = fetch_work(worker_id)
+    # print(ptrn_id)
+    lv1selector = level1_selectors[ptrn_id]
+    print(f"selector node: {lv1selector}")
     # Convert data into a task object for BestFirstSearch
     task = ps.SubgroupDiscoveryTask(data=data,
                                 target=target,
@@ -145,13 +147,27 @@ def main(worker_id):
     if lv1selector:
         traverse_node(worker_id, task, lv1selector) #usually take more time to traverse when the patterns to traverse under the node is deep
 
-
+#%%
 if __name__ == '__main__':
-    data = pd.read_csv("C:\Projects\SoftwareLab_PreThesis\gene_test.csv")
+    # if len(sys.argv) > 1:
+    #     server_port = sys.argv[2]
+    # else:
+    #     sys.stderr.write('Worker ID is required\n')
+    data = pd.read_csv(r"C:\Projects\SoftwareLab_PreThesis\gene_test.csv")
     target = ps.BinaryTarget("survival_category", "long")
     search_space = ps.create_selectors(data, ignore=["survival_category", "overall survival follow-up time"])
-    if len(sys.argv) > 1:
-        main(sys.argv[1])
-        server_port = sys.argv[2]
-    else:
-        sys.stderr.write('Worker ID is required\n')
+    ref_operator = ps.StaticSpecializationOperator(search_space)
+    level1_selectors = list(chain.from_iterable(ref_operator.search_space))
+    print([i for i in sys.argv])
+
+    producer_conf = {'bootstrap.servers': 'localhost:9092'}
+    producer = Producer(**producer_conf)
+
+    consumer_conf = {
+        f'bootstrap.servers': 'localhost:9091,localhost:9092,localhost:9093',
+        'group.id': 'worker-group',
+        'auto.offset.reset': 'earliest'
+    }
+    consumer = Consumer(consumer_conf)
+    main(sys.argv[1])
+# %%

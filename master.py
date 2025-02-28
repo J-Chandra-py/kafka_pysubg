@@ -1,11 +1,14 @@
+#%%
 from confluent_kafka import Producer, Consumer, KafkaException
 import json
 import pandas as pd
 from itertools import chain
 import pysubgroup as ps
+
 producer_conf = {'bootstrap.servers': 'localhost:9092'}
 producer = Producer(**producer_conf)
 
+#%%
 def distribute_selectors(lv1selectors):
     worker_ids = ['worker1', 'worker2', 'worker3']
     for i, lv1selector in enumerate(lv1selectors):
@@ -13,13 +16,15 @@ def distribute_selectors(lv1selectors):
         producer.produce(
             'work-topic-' + worker_id, 
             key=worker_id, 
-            value=json.dumps(lv1selector)
+            value=json.dumps(str(i))
         )
         producer.flush()
+        print(f"produced topic: {i}:{i}")
 
+#%%
 def aggregate_results(num_workers):
     consumer_conf = {
-        'bootstrap.servers': 'localhost:9091',
+        'bootstrap.servers': 'localhost:9093',
         'group.id': 'master-group',
         'auto.offset.reset': 'earliest'
     }
@@ -50,6 +55,7 @@ def aggregate_results(num_workers):
     consumer.close()
     return results
 
+#%%
 def topk_sg(num_workers):
     results = aggregate_results(num_workers)
     # top_k = sorted(results, key=lambda x: x['quality'], reverse=True)[:10]
@@ -57,13 +63,18 @@ def topk_sg(num_workers):
     top_k = sorted(results)[:10]
     return top_k
 
-
+#%%
 def main():
-    data = pd.read_csv("C:\Projects\SoftwareLab_PreThesis\gene_test.csv")
+    data = pd.read_csv(r"C:\Projects\SoftwareLab_PreThesis\gene_test.csv")
     # target = ps.BinaryTarget("survival_category", "long")
     search_space = ps.create_selectors(data, ignore=["survival_category", "overall survival follow-up time"])
     ref_operator = ps.StaticSpecializationOperator(search_space)
-    level1_selectors = chain.from_iterable(getattr(ref_operator, search_space))
+    level1_selectors = list(chain.from_iterable(ref_operator.search_space))
+    # print(len(level1_selectors), "Full Search space:", level1_selectors, sep="\n")
+    # print(level1_selectors[2:4])
     distribute_selectors(level1_selectors)
+
+#%%
 if __name__ == "__main__":
     main()
+# %%

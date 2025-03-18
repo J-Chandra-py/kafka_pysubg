@@ -1,11 +1,7 @@
 # ParaDis X pysubgroup-BFS
 
 This project is an attempt to implement the ParaDis algorithm for subgroup discovery as discussed in the paper:
-
-> **ParaDis: A parallel and distributed algorithm for subgroup discovery**  
-> Authors: A. K. Sharma, S. K. Gupta, and S. K. Singh  
-> Published in: Knowledge-Based Systems, Volume 266, 2023, Article 111335  
-> DOI: [10.1016/j.knosys.2023.111335](https://doi.org/10.1016/j.knosys.2023.111335)
+**"ParaDis: A parallel and distributed algorithm for subgroup discovery"**  
 
 The implementation uses Kafka-based distributed messaging and the `pysubgroup` library to perform subgroup discovery tasks. The system consists of a master node and multiple worker nodes that collaborate to execute the algorithm.
 
@@ -79,6 +75,14 @@ This project is still under development and is not yet fully functional. The cur
 - Adjust the number of worker nodes based on the available resources and the size of the task.
 - The project is still under development and may not work as expected. Contributions and discussions are welcome.
 
-## License
+## Citations
 
-This project is licensed under the MIT License.
+1. **ParaDis Algorithm:**
+   > **ParaDis: A parallel and distributed algorithm for subgroup discovery**  
+   > Authors: A. K. Sharma, S. K. Gupta, and S. K. Singh  
+   > Published in: Knowledge-Based Systems, Volume 266, 2023, Article 111335  
+   > DOI: [10.1016/j.knosys.2023.111335](https://doi.org/10.1016/j.knosys.2023.111335)
+
+2. **pysubgroup Library:**
+   > This project uses the `pysubgroup` library for subgroup discovery.  
+   > GitHub Repository: [flemmerich/pysubgroup](https://github.com/flemmerich/pysubgroup)

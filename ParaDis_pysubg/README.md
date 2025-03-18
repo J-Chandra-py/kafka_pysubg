@@ -1,6 +1,6 @@
 # ParaDis X pysubgroup-BFS
 
-This project is an attempt to reproduce the ParaDis algorithm for subgroup discovery as discussed in the paper:
+This project is an attempt to implement the ParaDis algorithm for subgroup discovery as discussed in the paper:
 
 > **ParaDis: A parallel and distributed algorithm for subgroup discovery**  
 > Authors: A. K. Sharma, S. K. Gupta, and S. K. Singh  
